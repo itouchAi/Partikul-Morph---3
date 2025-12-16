@@ -483,7 +483,7 @@ export const UIOverlay = forwardRef<HTMLInputElement, UIOverlayProps>(({
       {/* --- MÜZİK ÇALAR WIDGET (TOP CENTER) - Fixed --- */}
       {(audioMode !== 'none' && (!isUIHidden || musicShowInCleanMode) && !isDrawing) && (
           <div 
-              className={`absolute top-6 left-1/2 -translate-x-1/2 z-[60] transition-all duration-500 ${isWidgetMinimized ? '-translate-y-[200%]' : 'translate-y-0'}`}
+              className={`absolute top-6 left-1/2 -translate-x-1/2 z-[60] transition-all duration-500 translate-y-0`}
               onMouseEnter={() => { onInteractionStart(); setShowVolumeControl(true); }}
               onMouseLeave={() => { onInteractionEnd(); setShowVolumeControl(false); setShowMusicSettings(false); }}
           >
