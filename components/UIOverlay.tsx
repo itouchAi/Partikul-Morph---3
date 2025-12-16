@@ -702,14 +702,26 @@ export const UIOverlay = forwardRef<HTMLInputElement, UIOverlayProps>(({
               {/* --- BACK FACE (Expanded Info) --- */}
               <div 
                 className={`absolute inset-0 backface-hidden rounded-3xl border backdrop-blur-3xl shadow-2xl flex flex-col ${isLightMode ? 'bg-white/95 border-black/10 text-black' : 'bg-[#111] border-white/10 text-white'}`} 
-                style={{ transform: 'rotateY(180deg)', overflow: 'hidden' }}
+                style={{ transform: 'rotateY(180deg)', overflow: 'visible' }} // overflow visible for disk to pop out
                 dir="ltr"
               >
-                  {vinylArt && <img src={vinylArt} alt="bg" className="absolute inset-0 w-full h-full object-cover opacity-10 blur-sm scale-110 pointer-events-none" />}
-                  <div className={`p-8 pb-4 z-20 flex-shrink-0 border-b ${isLightMode ? 'border-black/5 bg-white/50' : 'border-white/5 bg-black/50'} backdrop-blur-md`}>
-                      <h2 className="text-3xl font-bold leading-tight">{songInfo?.artistName || "Detay Yok"}</h2>
-                      {songInfo && !isUnknownArtist && <p className="font-mono text-sm opacity-60 mt-1">{songInfo.artistBio}</p>}
+                  {/* --- DISK ON BACK FACE (STICKING OUT) --- */}
+                  <div className="absolute left-1/2 -translate-x-1/2 -top-16 z-30 pointer-events-none">
+                      <div className={`w-32 h-32 rounded-full shadow-xl border-4 ${isLightMode ? 'border-gray-200' : 'border-gray-800'} relative flex items-center justify-center overflow-hidden ${isPlaying || isLoadingInfo ? 'animate-spin-slow' : 'animate-spin-slow paused-spin'}`}>
+                          {vinylArt ? ( <img src={vinylArt} alt="Cover" className="w-full h-full object-cover" /> ) : ( <div className="w-full h-full vinyl-grooves opacity-80 flex items-center justify-center"> {isLoadingInfo && <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>} </div> )}
+                          <div className={`absolute w-8 h-8 rounded-full ${isLightMode ? 'bg-gray-200' : 'bg-black'} border-2 border-white/20 z-10`}></div>
+                          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/20 to-transparent pointer-events-none"></div>
+                      </div>
                   </div>
+
+                  {vinylArt && <img src={vinylArt} alt="bg" className="absolute inset-0 w-full h-full object-cover opacity-10 blur-sm scale-110 pointer-events-none rounded-3xl overflow-hidden" />}
+                  
+                  {/* Header Content with padding top to clear the disk */}
+                  <div className={`p-8 pt-[70px] pb-4 z-20 flex-shrink-0 border-b ${isLightMode ? 'border-black/5 bg-white/50' : 'border-white/5 bg-black/50'} backdrop-blur-md rounded-t-3xl`}>
+                      <h2 className="text-3xl font-bold leading-tight text-center mt-2">{songInfo?.artistName || "Detay Yok"}</h2>
+                      {songInfo && !isUnknownArtist && <p className="font-mono text-sm opacity-60 mt-1 text-center">{songInfo.artistBio}</p>}
+                  </div>
+                  
                   <div className="flex-1 p-8 pt-6 overflow-y-auto custom-thin-scrollbar relative z-10">
                       {songInfo ? ( 
                           <div className="space-y-8"> 
