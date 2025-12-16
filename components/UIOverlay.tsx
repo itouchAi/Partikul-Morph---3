@@ -316,6 +316,8 @@ export const UIOverlay = forwardRef<HTMLInputElement, UIOverlayProps>(({
   const [showMusicSettings, setShowMusicSettings] = useState(false);
   const [musicShowInCleanMode, setMusicShowInCleanMode] = useState(false);
   const [showVolumeControl, setShowVolumeControl] = useState(false);
+  const [isMusicPlayerMinimized, setIsMusicPlayerMinimized] = useState(false);
+
   // ** Restored Music Text Settings **
   const [musicFont, setMusicFont] = useState(FONTS[0].value);
   const [musicBold, setMusicBold] = useState(false);
@@ -468,7 +470,25 @@ export const UIOverlay = forwardRef<HTMLInputElement, UIOverlayProps>(({
         .animate-marquee-loop { animation: marquee-loop 15s linear infinite; display: flex; width: max-content; }
         .mask-linear-fade { mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); WebkitMaskImage: linear-gradient(to right, transparent, black 10%, black 90%, transparent); }
         
-        /* Removed old keyframe animations for Coin Flip */
+        /* Horizontal Volume Slider Custom Style */
+        .custom-vol-slider-h {
+            -webkit-appearance: none;
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+        }
+        .custom-vol-slider-h::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px; 
+            height: 16px; 
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
       `}</style>
       
       {isAnyMenuOpen && ( <div className="fixed inset-0 z-40 bg-transparent" onPointerDown={closeAllMenus} /> )}
@@ -480,103 +500,129 @@ export const UIOverlay = forwardRef<HTMLInputElement, UIOverlayProps>(({
       <input type="file" accept="audio/*" ref={actualAudioInputRef} onChange={handleAudioSelect} className="hidden" />
       <input type="file" accept="image/*" multiple ref={bgImageInputRef} onChange={handleBgImagesSelect} className="hidden" />
 
-      {/* --- MÜZİK ÇALAR WIDGET (TOP CENTER) - Fixed --- */}
+      {/* --- MÜZİK ÇALAR WIDGET (TOP CENTER) - KOMPAKT TASARIM --- */}
       {(audioMode !== 'none' && (!isUIHidden || musicShowInCleanMode) && !isDrawing) && (
-          <div 
-              className={`absolute top-6 left-1/2 -translate-x-1/2 z-[60] transition-all duration-500 translate-y-0`}
-              onMouseEnter={() => { onInteractionStart(); setShowVolumeControl(true); }}
-              onMouseLeave={() => { onInteractionEnd(); setShowVolumeControl(false); setShowMusicSettings(false); }}
-          >
-              <div className={`
-                  relative flex items-center gap-4 px-6 py-3 rounded-full backdrop-blur-xl border shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-300 group
-                  ${isLightMode ? 'bg-white/40 border-white/40 text-black' : 'bg-black/40 border-white/10 text-white'}
-                  hover:scale-105 hover:bg-opacity-60 hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)]
+          // WRAPPER DIV: Konumlandırma ve Hover Group
+          // *** DÜZELTME: pb-10 ekleyerek hover alanını aşağı doğru genişlettik. ***
+          // Böylece fare butona veya menüye giderken kapsülden ayrılsa bile 'group' içinde kalıyor.
+          <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[60] group/player pb-10">
+              
+              {/* --- BUTONLAR (KAPSÜL ALTI - SAĞ) --- */}
+              {/* top-12 (48px) ile kapsülün hemen altına yapıştırdık */}
+              <div className={`absolute top-12 right-0 mt-1 flex gap-1 transition-all duration-300 transform
+                  ${isMusicPlayerMinimized ? 'opacity-0 pointer-events-none scale-0' : 'opacity-0 -translate-y-2 group-hover/player:opacity-100 group-hover/player:translate-y-0 scale-100'}
               `}>
-                  {/* Album Art / Icon (Rotating) */}
-                  <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center overflow-hidden flex-shrink-0 ${isLightMode ? 'border-black/10 bg-white/50' : 'border-white/10 bg-white/5'}`}>
-                      {songInfo?.coverArt ? (
-                          <img src={songInfo.coverArt} alt="art" className={`w-full h-full object-cover ${isPlaying ? 'animate-spin-slow' : ''}`} />
-                      ) : (
-                          <div className={`w-full h-full flex items-center justify-center ${isPlaying ? 'animate-spin-slow' : ''}`}>
-                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
-                          </div>
-                      )}
-                  </div>
+                   {/* Ayarlar Toggle */}
+                   <button onClick={(e) => { e.stopPropagation(); setShowMusicSettings(!showMusicSettings); }} className="p-1.5 bg-black/60 hover:bg-black/80 backdrop-blur-md rounded-full text-white/80 hover:text-white border border-white/10 transition-colors shadow-sm" title="Ayarlar">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={showMusicSettings ? 'rotate-90' : ''}><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                   </button>
+                   {/* Küçültme Butonu */}
+                   <button onClick={(e) => { e.stopPropagation(); setIsMusicPlayerMinimized(true); setShowMusicSettings(false); }} className="p-1.5 bg-black/60 hover:bg-black/80 backdrop-blur-md rounded-full text-white/80 hover:text-white border border-white/10 transition-colors shadow-sm" title="Simge Durumuna Küçült">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                   </button>
+              </div>
 
-                  {/* Song Title (Marquee) & Artist */}
-                  <div className="flex flex-col w-40 overflow-hidden relative">
-                      <div className="w-full overflow-hidden whitespace-nowrap mask-linear-fade flex items-center">
-                          {/* Fixed: Always animate if length > 20, regardless of isPlaying */}
-                          <div className={`${(audioTitle && audioTitle.length > 20) ? 'animate-marquee-loop' : ''} flex flex-row items-center`}>
-                             <span 
-                                className="text-sm tracking-wide mr-8 block" // mr-8 spacer for loop
-                                style={{ 
-                                    fontFamily: musicFont, 
-                                    fontWeight: musicBold ? 'bold' : 'normal', 
-                                    fontStyle: musicItalic ? 'italic' : 'normal',
-                                    whiteSpace: 'nowrap'
-                                }}
-                             >
-                                {audioTitle || "Bilinmeyen Şarkı"}
-                             </span>
-                             {(audioTitle && audioTitle.length > 20) && (
-                                 <span 
-                                    className="text-sm tracking-wide mr-8 block"
-                                    style={{ 
-                                        fontFamily: musicFont, 
-                                        fontWeight: musicBold ? 'bold' : 'normal', 
-                                        fontStyle: musicItalic ? 'italic' : 'normal',
-                                        whiteSpace: 'nowrap'
-                                    }}
-                                 >
-                                    {audioTitle || "Bilinmeyen Şarkı"}
-                                 </span>
-                             )}
-                          </div>
-                      </div>
-                      <span className="text-[10px] opacity-60 font-mono truncate">{songInfo?.artistName || "Sanatçı"}</span>
-                  </div>
-
-                  {/* Controls (Hidden by default, visible on hover) */}
-                  <div className="absolute inset-0 bg-black/60 backdrop-blur-xl rounded-full flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-                       {/* Volume Toggle */}
-                       <div className="relative group/vol">
-                          <button className="p-2 hover:text-blue-400 transition-colors text-white">
+              {/* --- ANA KAPSÜL (KOMPAKT) --- */}
+              <div 
+                  className={`relative transition-all duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] translate-y-0
+                  ${isMusicPlayerMinimized ? 'w-12 h-12 rounded-full' : 'w-[200px] h-12 rounded-full'}
+                  backdrop-blur-xl border shadow-[0_4px_20px_rgba(0,0,0,0.3)]
+                  ${isLightMode ? 'bg-white/40 border-white/40 text-black' : 'bg-black/40 border-white/10 text-white'}
+                  overflow-hidden
+                  `}
+                  onMouseEnter={() => { onInteractionStart(); setShowVolumeControl(true); }}
+                  onMouseLeave={() => { onInteractionEnd(); setShowVolumeControl(false); setShowMusicSettings(false); }}
+              >
+                  {/* --- İÇERİK KONTROLLERİ (HOVER İLE GÖRÜNÜR) --- */}
+                  <div className={`absolute inset-0 flex items-center justify-between px-2 z-20 transition-opacity duration-300 pointer-events-none
+                       ${isMusicPlayerMinimized ? 'opacity-0' : 'opacity-0 group-hover/player:opacity-100 group-hover/player:pointer-events-auto'}
+                  `}>
+                       {/* SOL: Volume & Slider */}
+                       <div className="flex items-center relative group/vol">
+                          <button className="p-1.5 hover:bg-white/10 rounded-full text-current transition-colors z-10">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
                           </button>
-                          {/* Horizontal Volume Slider Popup (To the right) */}
-                          <div className="absolute left-full top-1/2 -translate-y-1/2 pl-4 w-32 h-10 flex items-center opacity-0 group-hover/vol:opacity-100 transition-opacity pointer-events-none group-hover/vol:pointer-events-auto">
-                              <div className="bg-[#111] rounded-full border border-white/20 px-3 py-1 flex items-center">
-                                <input 
+                          {/* Yatay Slider - İkonun sağında belirir */}
+                          <div className="w-0 overflow-hidden group-hover/vol:w-20 transition-all duration-300 ease-out flex items-center">
+                              <div className="w-16 h-1 bg-current/20 rounded-full ml-1 relative flex items-center">
+                                  <input 
                                     type="range" 
                                     min="0" max="1" step="0.01" 
                                     value={volume} 
                                     onChange={(e) => onVolumeChange && onVolumeChange(parseFloat(e.target.value))}
-                                    className="w-20 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
-                                />
+                                    className="custom-vol-slider-h w-full opacity-80 hover:opacity-100" 
+                                  />
                               </div>
                           </div>
                        </div>
 
-                       {/* Play/Pause */}
-                       <button onClick={(e) => { e.stopPropagation(); onTogglePlay && onTogglePlay(); }} className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 transition-transform">
-                          {isPlaying ? (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
-                          ) : (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                          )}
-                       </button>
+                       {/* SAĞ: Play/Pause */}
+                       <div className="pr-0.5">
+                           <button onClick={(e) => { e.stopPropagation(); onTogglePlay && onTogglePlay(); }} className="p-1.5 hover:bg-white/10 rounded-full text-current transition-colors">
+                              {isPlaying ? (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                              ) : (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                              )}
+                           </button>
+                       </div>
+                  </div>
 
-                       {/* Settings Toggle */}
-                       <button onClick={(e) => { e.stopPropagation(); setShowMusicSettings(!showMusicSettings); }} className="p-2 hover:text-blue-400 transition-colors text-white">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={showMusicSettings ? 'rotate-90' : ''}><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                       </button>
+                  {/* --- MERKEZ İÇERİK: DİSK + YAZI --- */}
+                  {/* Hover durumunda blur ve opacity değişimi ile geriye çekilir */}
+                  <div className={`absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none transition-all duration-500 ease-in-out
+                      ${!isMusicPlayerMinimized ? 'group-hover/player:blur-sm group-hover/player:opacity-40 group-hover/player:scale-95' : ''}
+                  `}>
+                       {/* Kayar Konteyner (Sliding Wrapper) */}
+                       <div className={`flex w-full h-full items-center transition-all duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] pointer-events-auto
+                           ${isMusicPlayerMinimized ? 'justify-center' : 'justify-between pl-1 pr-3'}
+                       `}>
+                           {/* Dönen Disk (Küçültülmüş) */}
+                           <div 
+                              className={`
+                                  relative flex-shrink-0 border-2 flex items-center justify-center overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)]
+                                  ${isLightMode ? 'border-black/10 bg-white/50' : 'border-white/10 bg-white/5'}
+                                  ${isMusicPlayerMinimized ? 'w-10 h-10 rounded-full border-2 hover:scale-110 cursor-pointer shadow-lg shadow-white/10' : 'w-8 h-8 rounded-full'}
+                              `}
+                              onClick={(e) => { if(isMusicPlayerMinimized) { e.stopPropagation(); setIsMusicPlayerMinimized(false); } }}
+                           >
+                              {songInfo?.coverArt ? (
+                                  <img src={songInfo.coverArt} alt="art" className={`w-full h-full object-cover ${isPlaying ? 'animate-spin-slow' : ''}`} />
+                              ) : (
+                                  <div className={`w-full h-full flex items-center justify-center ${isPlaying ? 'animate-spin-slow' : ''}`}>
+                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                                  </div>
+                              )}
+                              
+                              {/* Minimized Hover Overlay Icon */}
+                              {isMusicPlayerMinimized && (
+                                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" className="drop-shadow-md"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+                                  </div>
+                              )}
+                           </div>
+
+                           {/* Şarkı Bilgisi (Yazı - Kompakt) */}
+                           <div className={`flex flex-col overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] ml-2 flex-1 text-right
+                               ${isMusicPlayerMinimized ? 'w-0 opacity-0' : 'opacity-100'}
+                           `}>
+                              <div className="w-full overflow-hidden whitespace-nowrap mask-linear-fade flex items-center justify-end">
+                                  <div className={`${(audioTitle && audioTitle.length > 18) ? 'animate-marquee-loop' : ''} flex flex-row items-center`}>
+                                     <span className="text-[10px] tracking-wide block" style={{ fontFamily: musicFont, fontWeight: musicBold ? 'bold' : 'normal', fontStyle: musicItalic ? 'italic' : 'normal', whiteSpace: 'nowrap' }}>{audioTitle || "Bilinmeyen Şarkı"}</span>
+                                     {(audioTitle && audioTitle.length > 18) && (
+                                         <span className="text-[10px] tracking-wide ml-6 block" style={{ fontFamily: musicFont, fontWeight: musicBold ? 'bold' : 'normal', fontStyle: musicItalic ? 'italic' : 'normal', whiteSpace: 'nowrap' }}>{audioTitle || "Bilinmeyen Şarkı"}</span>
+                                     )}
+                                  </div>
+                              </div>
+                              <span className="text-[9px] opacity-60 font-mono truncate">{songInfo?.artistName || "Sanatçı"}</span>
+                           </div>
+                       </div>
                   </div>
               </div>
               
               {/* --- Music Settings Dropdown (Full Features) --- */}
               {showMusicSettings && (
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 w-64 mt-2 bg-[#111]/95 backdrop-blur-xl border border-white/20 rounded-xl p-4 shadow-[0_10px_40px_rgba(0,0,0,0.8)] animate-config-pop z-20" onPointerDown={stopProp}>
+                  <div className="absolute top-20 left-1/2 -translate-x-1/2 w-64 bg-[#111]/95 backdrop-blur-xl border border-white/20 rounded-xl p-4 shadow-[0_10px_40px_rgba(0,0,0,0.8)] animate-config-pop z-20" onPointerDown={stopProp}>
                       <h5 className="text-[10px] font-mono text-gray-400 text-center uppercase tracking-widest mb-3 border-b border-white/10 pb-1">Müzik Ayarları</h5>
                       
                       {/* Font Selection */}
